@@ -16,8 +16,8 @@ const (
 func createDummyData(repo Repository) {
 	defer repo.Close()
 	vessels := []*pb.Vessel{
-		{Id: "v001", Name: "heavy duty", MaxWeight: 20000, Capacity: 500},
 		{Id: "v002", Name: "light duty", MaxWeight: 200, Capacity: 3},
+		{Id: "v001", Name: "heavy duty", MaxWeight: 20000, Capacity: 500},
 	}
 
 	for _, v := range vessels {
@@ -29,7 +29,7 @@ func main() {
 
 	host := os.Getenv("DB_HOST")
 
-	if (host == nil) || (host == "") {
+	if host == "" {
 		host = defaultHost
 	}
 

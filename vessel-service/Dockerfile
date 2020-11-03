@@ -1,15 +1,25 @@
-FROM golang:1.15.0 as builder
+# FROM golang:1.15.0 as builder
 
-WORKDIR /go/src/github.com/d-vignesh/shipper/vessel-service
+# ENV CGO_ENABLED=0 \
+#     GOOS=linux \
+#     GOARCH=amd64
 
-COPY . . 
+# WORKDIR /build
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o vessel-service -a -installprefix cgo main.go repository.go handler.go datastore.go
+# COPY go.mod .
+# COPY go.sum .
+# RUN go mod download
+
+# COPY . . 
+
+# RUN go build -o vessel-service -a -installsuffix cgo main.go repository.go handler.go datastore.go
 
 FROM debian:latest
 
 RUN mkdir /app
 WORKDIR /app
-COPY --from=builder /go/src/github.com/d-vignesh/shipper/vessel-service/vessel-service .
+
+# COPY --from=builder /build/vessel-service .
+COPY ./vessel-service .
 
 CMD ["./vessel-service"]
