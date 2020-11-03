@@ -5,8 +5,8 @@ protos:
 	--go_out=proto/consignment --micro_out=proto/consignment proto/consignment.proto 
 
 build:
-	GOOS=linux GOARCH=amd64 go build
-	sudo docker build -t consignment-service .
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o consignment-service -a -installsuffix cgo main.go repository.go handler.go datastore.go
+	# sudo docker build -t consignment-service .
 
 run :
 	sudo docker run -p 50051:50051 \

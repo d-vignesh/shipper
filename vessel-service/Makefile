@@ -3,8 +3,8 @@ protos:
 	--go_out=proto/vessel --micro_out=proto/vessel	proto/vessel.proto
 
 build:
-	GOOS=linux GOARCH=amd64 go build
-	sudo docker build -t vessel-service .
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o vessel-service -a -installsuffix cgo main.go repository.go handler.go datastore.go
+	# sudo docker build -t vessel-service .
 
 run:
 	sudo docker run -p 50052:50051 \

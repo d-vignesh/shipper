@@ -5,6 +5,7 @@ import (
 	"golang.org/x/net/context"
 	pb "github.com/d-vignesh/shipper/consignment-service/proto/consignment"
 	vesselProto "github.com/d-vignesh/shipper/vessel-service/proto/vessel"
+	"gopkg.in/mgo.v2"
 )
 
 type ConsignmentHandler struct {

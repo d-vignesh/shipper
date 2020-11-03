@@ -28,4 +28,4 @@ services:
   datastore:
     image: mongo
     ports:
-      - 27017:27017
+      - 27022:27017

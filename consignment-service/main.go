@@ -7,7 +7,6 @@ import (
 	pb "github.com/d-vignesh/shipper/consignment-service/proto/consignment"
 	vesselProto "github.com/d-vignesh/shipper/vessel-service/proto/vessel"
 	micro "github.com/micro/go-micro/v2"
-	"golang.org/x/net/context"
 	"os"
 )
 
@@ -19,7 +18,7 @@ func main() {
 
 	// Get database host from env variable
 	host := os.Getenv("DB_HOST")
-	if (host == nil) || (host == "") {
+	if host == "" {
 		host = defaultHost
 	}
 
@@ -42,7 +41,7 @@ func main() {
 
 	ms.Init()
 
-	ch := &ConsignmentHandler{repo: repo, vesselClient: vc}
+	ch := &ConsignmentHandler{session: session, vesselClient: vc}
 
 	pb.RegisterShippingServiceHandler(ms.Server(), ch)
 

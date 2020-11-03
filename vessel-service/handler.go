@@ -3,15 +3,16 @@ package main
 import (
 	pb "github.com/d-vignesh/shipper/vessel-service/proto/vessel"
 	"golang.org/x/net/context"
+	"gopkg.in/mgo.v2"
 
 )
 
 type VesselHandler struct {
-	session		*mgo.Session,
+	session		*mgo.Session
 }
 
-func (vh *VessleHandler) GetRepo() Repsitory {
-	return *VesselRepository{vh.session.Clone()}
+func (vh *VesselHandler) GetRepo() Repository {
+	return &VesselRepository{vh.session.Clone()}
 }
 
 // Create - stores the provided vessel into the database
@@ -38,6 +39,6 @@ func (vh *VesselHandler) FindAvailable(ctx context.Context, req *pb.Specificatio
 		return err 
 	}
 
-	res.Vessel = vessel
+	resp.Vessel = vessel
 	return nil
 }
