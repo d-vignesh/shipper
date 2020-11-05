@@ -1,61 +1,50 @@
 package main
 
 import (
-	"log"
-	"golang.org/x/net/context"
+	"context"
+
 	pb "github.com/d-vignesh/shipper/consignment-service/proto/consignment"
 	vesselProto "github.com/d-vignesh/shipper/vessel-service/proto/vessel"
-	"gopkg.in/mgo.v2"
+	"github.com/pkg/errors"
 )
 
 type ConsignmentHandler struct {
-	session			*mgo.Session
+	repository 		Repository
 	vesselClient	vesselProto.VesselService
 }
 
-// GetRepo - provides a new Repository with the handlers mongo session
-func (ch *ConsignmentHandler) GetRepo() Repository {
-	return &ConsignmentRepository{ch.session.Clone()}
-}
-
 // CreateConsignment - store the request consignment into the database
-func (ch *ConsignmentHandler) CreateConsignment(ctx context.Context, req *pb.Consignment, res *pb.Response) error {
-	repo := ch.GetRepo()
-	defer repo.Close()
+func (ch *ConsignmentHandler) CreateConsignment(ctx context.Context, req *pb.Consignment, resp *pb.Response) error {
 
-	// make a request to the vessel-service to check for a vessel 
-	// that is satisfying the given consignment specification
-	vesselResp, err := ch.vesselClient.FindAvailable(context.Background(), &vesselProto.Specification{
+	vesselResp, err := ch.vesselClient.FindAvailable(ctx, &vesselProto.Specification{
 		MaxWeight: req.Weight,
-		Capacity: int32(len(req.Containers)),
+		Capacity : int32(len(req.Containers)),
 	})
-	if err != nil {
-		return err
-	}
-	log.Printf("found vessel: %s \n", vesselResp.Vessel.Name)
-
-	req.VesselId = vesselResp.Vessel.Id 
-
-	// save the consignment
-	err = repo.Create(req)
-	if err != nil {
-		return err
+	if vesselResp == nil {
+		return errors.New("no vessel found for the specification, got nil response")
 	}
 
-	// update the response
-	res.Created = true
-	res.Consignment = req
+	if err != nil {
+		return nil
+	}
+
+	req.VesselId = vesselResponse.Vessel.Id
+
+	if err = ch.repository.Create(ctx, MarshalConsignment(req)); err != nil {
+		return err
+	}
+
+	resp.Created = true
+	resp.Consignment = req
 	return nil
 }
 
-func (ch *ConsignmentHandler) GetConsignments(ctx context.Context, req *pb.GetRequest, res *pb.Response) error {
-	repo := ch.GetRepo()
-	defer repo.Close()
+func (ch *ConsignmentHandler) GetConsignments(ctx context.Context, req *pb.GetRequest, resp *pb.Response) error {
 
-	consignments, err := repo.GetAll()
+	consignments, err := ch.repository.GetAll(ctx)
 	if err != nil {
 		return err
 	}
-	res.Consignments = consignments
+	resp.Consignments = UnmarshalConsignmentCollection(consignments)
 	return nil
 }

@@ -1,31 +1,35 @@
-# FROM golang:1.15.0 as builder
+FROM golang:alphine as builder
 
-# # set necessary environment variable needed for our image
-# ENV CGO_ENABLED=0 \
-#     GOOS=linux \
-#     GOARCH=amd64
+RUN apk update && apk upgrade && \
+    apk add --no-cache git
 
-# # move working directory to /build
-# WORKDIR /build
+# move working directory to /build
+RUN mkdir /build
+WORKDIR /build
 
-# # copy and download dependency using go mod
-# COPY go.mod .
-# COPY go.sum .
-# RUN go mod download
+ENV GO111MODULE=on
 
-# # copy to code into the container
-# COPY . .
+# copy and download dependency using go mod
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
 
-# # build the application
-# RUN go build -a -installsuffix cgo -o consignment-cli .
+# copy to code into the container
+COPY . .
 
-FROM debian:latest
+# build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o consignment-cli .
+
+FROM alphine:latest
+
+RUN apk --no-cache add ca-certificates
 
 RUN mkdir -p /app
 WORKDIR /app
 
-# COPY --from=builder /build/consignment-cli .
-COPY ./consignment-cli .
-COPY ./consignment.json .
+COPY --from=builder /build/consignment-cli .
+COPY --from=builder /build/consignment.json .
+# COPY ./consignment-cli .
+# COPY ./consignment.json .
 
 CMD ["./consignment-cli"]

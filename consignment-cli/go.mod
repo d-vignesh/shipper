@@ -7,3 +7,5 @@ require (
 	github.com/micro/go-micro/v2 v2.9.1
 	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
 )
+
+replace google.golang.org/grpc => google.golang.org/grpc v1.27.0

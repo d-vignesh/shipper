@@ -1,25 +1,29 @@
-# FROM golang:1.15.0 as builder
+FROM golang:alphine as builder
 
-# ENV CGO_ENABLED=0 \
-#     GOOS=linux \
-#     GOARCH=amd64
+RUN apk update && apk upgrade && \
+    apk add --no-cache 
 
-# WORKDIR /build
+RUN mkdir /build
+WORKDIR /build
 
-# COPY go.mod .
-# COPY go.sum .
-# RUN go mod download
+ENV GO111MODULE=on
 
-# COPY . . 
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
 
-# RUN go build -o vessel-service -a -installsuffix cgo main.go repository.go handler.go datastore.go
+COPY . . 
 
-FROM debian:latest
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o vessel-service *.go
+
+FROM alphine:latest
+
+RUN apk --no-cache add ca-certificates
 
 RUN mkdir /app
 WORKDIR /app
 
-# COPY --from=builder /build/vessel-service .
-COPY ./vessel-service .
+COPY --from=builder /build/vessel-service .
+# COPY ./vessel-service .
 
 CMD ["./vessel-service"]

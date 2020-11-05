@@ -1,44 +1,32 @@
 package main
 
 import (
+	"context"
+
 	pb "github.com/d-vignesh/shipper/vessel-service/proto/vessel"
-	"golang.org/x/net/context"
-	"gopkg.in/mgo.v2"
 
 )
 
 type VesselHandler struct {
-	session		*mgo.Session
-}
-
-func (vh *VesselHandler) GetRepo() Repository {
-	return &VesselRepository{vh.session.Clone()}
+	repository	*MongoRepository
 }
 
 // Create - stores the provided vessel into the database
 func (vh *VesselHandler) Create(ctx context.Context, req *pb.Vessel, resp *pb.Response) error {
-	repo := vh.GetRepo()
-	defer repo.Close()
-
-	err := repo.Create(req)
-	if err != nil {
+	if err := vh.repository.Create(ctx, MarshalVessel(req)); err != nil {
 		return err
 	}
-
-	resp.Created = true
 	resp.Vessel = req
 	return nil
 }
 
 func (vh *VesselHandler) FindAvailable(ctx context.Context, req *pb.Specification, resp *pb.Response) error {
-	repo := vh.GetRepo()
-	defer repo.Close()
-
-	vessel, err := repo.FindAvailable(req)
+	
+	vessel, err := vh.repository.FindAvailable(ctx, MarshalSpecification(req))
 	if err != nil {
-		return err 
+		return err
 	}
 
-	resp.Vessel = vessel
+	resp.Vessel = UnmarshalVessel(vessel)
 	return nil
 }
